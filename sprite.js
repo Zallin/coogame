@@ -30,7 +30,7 @@ function initPieces(img, scale){
 			new Piece(501, 0, 75, 75),
 			new Piece(276, 0, 75, 75),
 			new Piece(351, 0, 75, 75),
-			new Piece(426, 0, 75, 75),
+			new Piece(426, 0, 75, 75)
 		],
 
 		ball : [
