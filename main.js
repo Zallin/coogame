@@ -9,7 +9,7 @@ var cns,
 function main(){
 	width = window.innerWidth;
 	height = window.innerHeight;
-	//count scale
+	var scale = ((width - 0.1 * width)/level.length)/75;
 
 	cns = document.createElement('canvas');
 	cns.width = window.innerWidth;
@@ -18,6 +18,7 @@ function main(){
 	document.appendChild(cns);
 
 	var evt = 'touchstart';
+	if(width > 600) evt = 'mousedown';
 
 	document.addEventListener(evt, onPress)
 
@@ -52,6 +53,10 @@ function render(){
 
 }
 
-function onPress(){
+function attachEvent(){
+	
+}
+
+function level(){
 
 }
