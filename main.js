@@ -4,7 +4,8 @@ var cns,
 	height,
 	scale,
 	sprite,
-	pieces;
+	pieces,
+	sweep = false;
 
 function main(){
 	width = window.innerWidth;
@@ -15,12 +16,9 @@ function main(){
 	cns.width = window.innerWidth;
 	cns.height = window.innerHeight;
 
-	document.appendChild(cns);
+	document.body.appendChild(cns);
 
-	var evt = 'touchstart';
-	if(width > 600) evt = 'mousedown';
-
-	document.addEventListener(evt, onPress)
+	addListener();
 
 	ctx = cns.getContext('2d');
 
@@ -28,7 +26,8 @@ function main(){
 	sprite.src = 'img/sprite.png';
 
 	sprite.onload = function () {
-		pieces = initPieces(this, scale);
+		pieces = initPieces(this, 0.5);
+		run();
 		//load level map
 		//run the game
 	}
@@ -50,13 +49,57 @@ function update(){
 }
 
 function render(){
-
+	balls.draw();
+	if(sweep) arrows.draw();
 }
 
-function attachEvent(){
-	
+function addListener(){
+	var pressed = false, evt = {
+		range : []
+	};
+
+	cns.addEventListener('mousedown', function(){
+		pressed = true;
+	});
+
+	cns.addEventListener('mouseup', function(){
+		pressed = false;
+		evt.range = [];
+	});
+
+	cns.addEventListener('mousemove', function(e){
+		if(pressed){
+			evt.range.push({x : e.pageX, y : e.pageY});
+			if(evt.range.length === 10){
+				var inside = false;
+				var fx = evt.range[0].x;
+				var fy = evt.range[0].y;
+
+				for(var i = 0; i < balls.coordinates.length; i++){
+					var bx = coordinates[i].x;
+					var by = coordinates[i].y;
+
+					var p1 = Math.min(Math.max(), );
+					var p2 = Math.min(Math.max(), )
+					if() inside = true;
+				}
+			}
+		}
+	});
 }
 
-function level(){
+var arrows = {
+	draw : function(){
 
+	}
 }
+
+var balls = {
+	coordinates : [{x : 100, y : 100}],
+
+	draw : function(){
+		pieces.ball[0].draw(ctx, this.coordinates[0].x, this.coordinates[0].y);
+	}
+}
+
+main();
