@@ -16,28 +16,20 @@ function initPieces(img, scale){
 	Piece.prototype.scale = scale;
 
 	return {
-		arleft : new Piece(0, 0, 67, 75),
-
-		arright : new Piece(67, 0, 67, 75),
-
-		arup : new Piece(134, 0, 32, 75),
-
-		ardown : new Piece(166, 0, 32, 75),
-
-		border : new Piece(201, 0, 75, 75),
+		border : new Piece(1, 0, 75, 75),
 
 		box: [
-			new Piece(501, 0, 75, 75),
-			new Piece(276, 0, 75, 75),
-			new Piece(351, 0, 75, 75),
-			new Piece(426, 0, 75, 75)
+			new Piece(76, 0, 75, 75),
+			new Piece(151, 0, 75, 75),
+			new Piece(226, 0, 75, 75),
+			new Piece(300, 0, 75, 75)
 		],
 
 		ball : [
-			new Piece(576, 0, 75, 75),
-			new Piece(651, 0, 75, 75),
-			new Piece(726, 0, 75, 75),
-			new Piece(801, 0, 75, 75)
+			new Piece(450, 0, 75, 75),
+			new Piece(525, 0, 75, 75),
+			new Piece(600, 0, 75, 75),
+			new Piece(375, 0, 75, 75)
 		]
 	}
 }
