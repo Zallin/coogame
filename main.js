@@ -70,24 +70,7 @@ function addListener(){
 		pressed = false;
 
 		if(n !== null){
-			var dir = balls.map[n].dir;
-			var m = Math.floor(range.length/2);
-			var l = range.length - 1;
-			var state = 'move';
-
-			if(dir === 'up'){
-				if(range[l].y > range[m].y) state = 'unshift';
-			}
-			if(dir === 'down'){
-				if(range[l].y < range[m].y) state = 'unshift';
-			}
-			if(dir === 'left'){
-				if(range[l].x > range[m].x) state = 'unshift';
-			}
-			if(dir === 'right'){
-				if(range[l].x < range[m].x) state = 'unshift';
-			}
-			balls.map[n].state = state;
+			balls.map[n].state = 'unshift';
 			n = null;
 		}
 		range = [];
@@ -133,21 +116,44 @@ function addListener(){
 
 				if(dx > 10 && dy > 10) return;
 
+				var l = Math.floor((balls.map[n].y - height*0.2)/((width*0.6)/level[0].length));
+				var c = Math.floor((balls.map[n].x - width*0.2)/((width*0.6)/level[0].length));
+
 				if(dx <= 10){
-					if(range[0].y < range[range.length - 1].y) balls.map[n].dir = 'down';
+					if(range[0].y < range[range.length - 1].y){
+						if(level[l + 1][c] !== ' ') return;
+						balls.map[n].dir = 'down';
+					}
 					else{
+						if(level[l - 1][c] !== ' ') return;
 						balls.map[n].dir = 'up';
 					}
 				}
 				else{
-					if(range[0].x < range[range.length - 1].x) balls.map[n].dir = 'right';
-					else balls.map[n].dir = 'left';
+					if(range[0].x < range[range.length - 1].x){
+						if(level[l][c + 1] !== ' ') return;
+						balls.map[n].dir = 'right';
+					}
+					else{
+						if(level[l][c - 1] !== ' ') return;
+						balls.map[n].dir = 'left';
+					} 
 				}
 
 				balls.map[n].state = 'shift';
 			}
 		}
 	});
+}
+
+
+function checkMove(l, c){
+	return {
+		'down' : level[l + 1][c] === ' ',
+		'up' : level[l - 1][c] === ' ',
+		'right' : level[l][c + 1] === ' ',
+		'left' : level[l][c - 1] === ' '
+	}
 }
 
 function Balls(hash){
@@ -189,6 +195,20 @@ function Balls(hash){
 					}
 					else {
 						count = 10;
+						b.state = 'move';
+					}
+				}
+				if(b.state === 'move'){
+					var l = Math.floor((b.y - height*0.2)/((width*0.6)/level[0].length));
+					var c = Math.floor((b.x - width*0.2)/((width*0.6)/level[0].length));
+
+					if(checkMove(l, c)[b.dir]){
+						if(b.dir === 'down')b.y+=5;
+						if(b.dir === 'up') b.y-=5;
+						if(b.dir === 'left') b.x-=5;
+						if(b.dir === 'right') b.x+=5;
+					}
+					else{
 						b.state = 'static';
 					}
 				}
@@ -231,13 +251,10 @@ function Exit(hash){
 }
 
 function generateLevel(){
-	var size = (width)/level[0].length * 0.6;
-	scale = size/75;
+	scale = (width*0.6/level[0].length)/75;
 
-	var offset = (width - (size * level[0].length))/2;
-
-	var initx = width - (width - offset);
-	var inity = height - (height - offset);
+	var initx = width - width*0.8;
+	var inity = height - height*0.8;
 
 	var cx = initx;
 
@@ -249,10 +266,10 @@ function generateLevel(){
 			if(c === 'X') bgHash.push({x : cx, y : inity});
 			if(c === 'B') ballsHash.push({x : cx, y : inity});
 			if(c === 'E') exitHash.push({x : cx, y : inity});
-			cx+= size;
+			cx+= (width*0.6)/level[0].length;
 		}
 		cx = initx;
-		inity +=size;
+		inity += (width*0.6)/level[0].length;
 	}
 
 	balls = new Balls(ballsHash);
