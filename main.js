@@ -5,16 +5,22 @@ var cns,
 	scale,
 	sprite,
 	pieces,
-	sweep = false;
+	balls,
+	bg,
+	exits;
 
 function main(){
 	width = window.innerWidth;
 	height = window.innerHeight;
-	scale = 1;
+	if(width > 600){
+		width = 600;
+		height = 600;
+	}
 
 	cns = document.createElement('canvas');
-	cns.width = window.innerWidth;
-	cns.height = window.innerHeight;
+
+	cns.width = width;
+	cns.height = height;
 
 	document.body.appendChild(cns);
 
@@ -25,10 +31,10 @@ function main(){
 	sprite.src = 'img/sprite.png';
 
 	sprite.onload = function () {
+		generateLevel();
 		pieces = initPieces(this, scale);
 		addListener();
 		run();
-
 	}
 }
 
@@ -48,12 +54,13 @@ function update(){
 }
 
 function render(){
-	ctx.fillRect(0, 0, width, height);
+	bg.draw();
+	exits.draw();
 	balls.draw();
 }
 
 function addListener(){
-	var pressed = false, range = [], n;
+	var pressed = false, range = [], n = null;
 
 	cns.addEventListener('mousedown', function(){
 		pressed = true;
@@ -66,19 +73,21 @@ function addListener(){
 			var dir = balls.map[n].dir;
 			var m = Math.floor(range.length/2);
 			var l = range.length - 1;
+			var state = 'move';
 
 			if(dir === 'up'){
-				if(range[l].y > range[m].y) balls.map[n].state = 'unshift';
+				if(range[l].y > range[m].y) state = 'unshift';
 			}
 			if(dir === 'down'){
-				if(range[l].y < range[m].y) balls.map[n].state = 'unshift';
+				if(range[l].y < range[m].y) state = 'unshift';
 			}
 			if(dir === 'left'){
-				if(range[l].x > range[m].x) balls.map[n].state = 'unshift';
+				if(range[l].x > range[m].x) state = 'unshift';
 			}
 			if(dir === 'right'){
-				if(range[l].x < range[m].x) balls.map[n].state = 'unshift';
+				if(range[l].x < range[m].x) state = 'unshift';
 			}
+			balls.map[n].state = state;
 			n = null;
 		}
 		range = [];
@@ -141,10 +150,14 @@ function addListener(){
 	});
 }
 
-var balls = {
-	map : [{x : 100, y : 100, state : 'static'}],
-	
-	update : (function(){
+function Balls(hash){
+	this.map = [];
+	for(var i in hash){
+		hash[i].state = 'static';
+		this.map.push(hash[i]);
+	}
+
+	this.update = (function(){
 		var count = 10;
 
 		return function(){
@@ -159,30 +172,91 @@ var balls = {
 						if(b.dir === 'right') b.x++;
 
 						count--;
-					}				
+					}
+					else{
+						count = 10;
+						b.state = 'static';
+					}			
 				}
 				if(b.state === 'unshift'){
-					if(count < 11){
+					if(count > 0){
 						if(b.dir === 'down') b.y--;
 						if(b.dir === 'up') b.y++;
 						if(b.dir === 'left') b.x++;
 						if(b.dir === 'right') b.x--;
 
-						count++;
+						count--;
 					}
 					else {
+						count = 10;
 						b.state = 'static';
 					}
 				}
 			}
 		}
-	})(),
+	})();
 
-	draw : function(){
+	this.draw = function(){
 		for(var i = 0; i < this.map.length; i++){
 			pieces.ball[i].draw(ctx, this.map[i].x, this.map[i].y);
 		}
 	}
 }
 
+function Background(hash){
+	this.map = [];
+	for(var i in hash){
+		this.map.push(hash[i]);
+	}
+
+	this.draw = function(){
+		ctx.fillRect(0, 0, width, height);
+		for(var i = 0; i < this.map.length; i++){
+			pieces.border.draw(ctx, this.map[i].x, this.map[i].y);
+		}
+	}
+}
+
+function Exit(hash){
+	this.map = [];
+	for(var i in hash){
+		this.map.push(hash[i]);
+	}
+
+	this.draw = function(){
+		for(var i = 0; i < this.map.length; i++){
+			pieces.box[i].draw(ctx, this.map[i].x, this.map[i].y);
+		}
+	}
+}
+
+function generateLevel(){
+	var size = (width)/level[0].length * 0.6;
+	scale = size/75;
+
+	var offset = (width - (size * level[0].length))/2;
+
+	var initx = width - (width - offset);
+	var inity = height - (height - offset);
+
+	var cx = initx;
+
+	var bgHash = [], ballsHash = [], exitHash = [];
+
+	for(var i = 0; i < level.length; i++){
+		for(var p = 0; p < level[i].length; p++){
+			var c = level[i][p];
+			if(c === 'X') bgHash.push({x : cx, y : inity});
+			if(c === 'B') ballsHash.push({x : cx, y : inity});
+			if(c === 'E') exitHash.push({x : cx, y : inity});
+			cx+= size;
+		}
+		cx = initx;
+		inity +=size;
+	}
+
+	balls = new Balls(ballsHash);
+	bg = new Background(bgHash);
+	exits = new Exit(exitHash);
+}
 main();
