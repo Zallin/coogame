@@ -111,7 +111,10 @@ function addListener(){
 					};
 				}
 
-				if(!inside) return;
+				if(!inside){
+					n = null;
+					return;
+				}
 
 				var sx = 0, sy = 0;
 
@@ -126,15 +129,17 @@ function addListener(){
 				var dx = Math.abs(fx - sx);
 				var dy = Math.abs(fy - sy);
 
-				if(dx > 10 && dy > 10) return;
+				if(dx > 10 && dy > 10){
+					n = null;
+					return;
+				}
 
 				var l = Math.floor((balls.map[n].y - height*0.2)/((width*0.6)/level.width));
 				var c = Math.floor((balls.map[n].x - width*0.2)/((width*0.6)/level.width));
 
-
 				if(dx <= 10){
 					if(range[0].y < range[range.length - 1].y){
-						if(level.map[l + 1][c] !== ' ') {
+						if(level.map[l + 1][c] == 'X' || level.map[l + 1][c] == 'B') {
 							n = null;
 							return;
 						};
@@ -142,7 +147,7 @@ function addListener(){
 						balls.map[n].dy = 1;
 					}
 					else{
-						if(level.map[l - 1][c] !== ' '){
+						if(level.map[l - 1][c] == 'X' || level.map[l - 1][c] == 'B'){
 							n = null;
 							return;
 						};
@@ -152,7 +157,7 @@ function addListener(){
 				}
 				else{
 					if(range[0].x < range[range.length - 1].x){
-						if(level.map[l][c + 1] !== ' '){
+						if(level.map[l][c + 1] == 'X' || level.map[l][c + 1] == 'B'){
 							n = null;
 							return;
 						}
@@ -160,14 +165,14 @@ function addListener(){
 						balls.map[n].dy = 0;
 					}
 					else{
-						if(level.map[l][c - 1] !== ' '){
+						if(level.map[l][c - 1] == 'X' || level.map[l][c - 1] == 'B'){	
 							n = null;
 							return;
 						}
 						balls.map[n].dx = -1;
 						balls.map[n].dy = 0;
 					} 
-				}
+				}		
 
 				balls.map[n].state = 'shift';
 			}
@@ -213,7 +218,7 @@ function Balls(hash){
 					b.x += b.left*b.dx;
 					b.y += b.left*b.dy;
 					b.state = 'static';
-					level.update(b.x, b.y, b.dx, b.dy);
+					level.update(b.x, b.y, b.dx, b.dy, i);
 					return;
 				}
 				b.x += b.dx*9;
@@ -225,7 +230,7 @@ function Balls(hash){
 
 	this.draw = function(){
 		for(var i = 0; i < this.map.length; i++){
-			pieces.ball[i].draw(ctx, this.map[i].x, this.map[i].y);
+			pieces.ball[this.map[i].id].draw(ctx, this.map[i].x, this.map[i].y);
 		}
 	}
 }
@@ -246,7 +251,7 @@ function Exit(hash){
 
 	this.draw = function(){
 		for(var i = 0; i < this.map.length; i++){
-			pieces.box[i].draw(ctx, this.map[i].x, this.map[i].y);
+			pieces.box[this.map[i].id].draw(ctx, this.map[i].x, this.map[i].y);
 		}
 	}
 }
@@ -255,13 +260,16 @@ function countDistance(x, y, dx, dy){
 	var lx = x - 0.2*width;
 	var ly = y - 0.2*width;
 
-	var l = Math.floor(ly / (width * 0.6 / level.width));
-	var c = Math.floor(lx / (width * 0.6 / level.width));
+	var l, c;
+
+	if(dx > 0 || dx == 0) c = Math.floor(lx / (width * 0.6 / level.width));
+	if(dx < 0) c = Math.ceil(lx / (width * 0.6 / level.width));
+	if(dy > 0 || dy == 0) l = Math.floor(ly / (width * 0.6 / level.width));
+	if(dy < 0) l = Math.ceil(ly / (width * 0.6 / level.width));
 
 	while(true){
 		l += dy;
 		c += dx;
-		console.log(level.map);
 		if(level.map[l][c] !== ' ') break;
 	}
 
@@ -285,8 +293,8 @@ function generateLevel(){
 		for(var p = 0; p < level.width; p++){
 			var c = level.map[i][p];
 			if(c === 'X') bgHash.push({x : cx, y : inity});
-			if(c === 'B') ballsHash.push({x : cx, y : inity});
-			if(c === 'E') exitHash.push({x : cx, y : inity});
+			if(c === 'B') ballsHash.push({x : cx, y : inity, id : ballsHash.length});
+			if(c === 'E') exitHash.push({x : cx, y : inity, id : exitHash.length});
 			cx+= (width*0.6)/level.width;
 		}
 		cx = initx;
