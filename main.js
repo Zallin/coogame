@@ -70,8 +70,19 @@ function addListener(){
 		pressed = false;
 
 		if(n !== null){
-			balls.map[n].left = countDistance(balls.map[n].x, balls.map[n].y, balls.map[n].dx, balls.map[n].dy);
-			balls.map[n].state = 'move';
+			var b = balls.map[n];
+			var m = Math.floor(range.length/2);
+ 			var l = range.length - 1;
+
+			var state = 'move';
+
+			if(b.dx > 0 && range[l].x < range[m].x ||
+				b.dx < 0 && range[l].x > range[m].x ||
+				b.dy > 0 && range[l].y < range[m].y ||
+				b.dy < 0 && range[l].y > range[m].y) state = 'unshift';
+
+			if(state == 'move') b.left = countDistance(b.x, b.y, b.dx, b.dy);
+			b.state = state;
 			n = null;
 		}
 		range = [];
@@ -123,24 +134,36 @@ function addListener(){
 
 				if(dx <= 10){
 					if(range[0].y < range[range.length - 1].y){
-						if(level.map[l + 1][c] !== ' ') return;
+						if(level.map[l + 1][c] !== ' ') {
+							n = null;
+							return;
+						};
 						balls.map[n].dx = 0;
 						balls.map[n].dy = 1;
 					}
 					else{
-						if(level.map[l - 1][c] !== ' ') return;
+						if(level.map[l - 1][c] !== ' '){
+							n = null;
+							return;
+						};
 						balls.map[n].dx = 0;
 						balls.map[n].dy = -1;
 					}
 				}
 				else{
 					if(range[0].x < range[range.length - 1].x){
-						if(level.map[l][c + 1] !== ' ') return;
+						if(level.map[l][c + 1] !== ' '){
+							n = null;
+							return;
+						}
 						balls.map[n].dx = 1
 						balls.map[n].dy = 0;
 					}
 					else{
-						if(level.map[l][c - 1] !== ' ') return;
+						if(level.map[l][c - 1] !== ' '){
+							n = null;
+							return;
+						}
 						balls.map[n].dx = -1;
 						balls.map[n].dy = 0;
 					} 
@@ -238,6 +261,7 @@ function countDistance(x, y, dx, dy){
 	while(true){
 		l += dy;
 		c += dx;
+		console.log(level.map);
 		if(level.map[l][c] !== ' ') break;
 	}
 
