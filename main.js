@@ -190,7 +190,7 @@ function Balls(hash){
 					b.x += b.left*b.dx;
 					b.y += b.left*b.dy;
 					b.state = 'static';
-					level.update();
+					level.update(b.x, b.y, b.dx, b.dy);
 					return;
 				}
 				b.x += b.dx*9;
