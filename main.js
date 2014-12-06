@@ -70,7 +70,8 @@ function addListener(){
 		pressed = false;
 
 		if(n !== null){
-			balls.map[n].state = 'unshift';
+			balls.map[n].left = countDistance(balls.map[n].x, balls.map[n].y, balls.map[n].dx, balls.map[n].dy);
+			balls.map[n].state = 'move';
 			n = null;
 		}
 		range = [];
@@ -116,27 +117,32 @@ function addListener(){
 
 				if(dx > 10 && dy > 10) return;
 
-				var l = Math.floor((balls.map[n].y - height*0.2)/((width*0.6)/level[0].length));
-				var c = Math.floor((balls.map[n].x - width*0.2)/((width*0.6)/level[0].length));
+				var l = Math.floor((balls.map[n].y - height*0.2)/((width*0.6)/level.width));
+				var c = Math.floor((balls.map[n].x - width*0.2)/((width*0.6)/level.width));
+
 
 				if(dx <= 10){
 					if(range[0].y < range[range.length - 1].y){
-						if(level[l + 1][c] !== ' ') return;
-						balls.map[n].dir = 'down';
+						if(level.map[l + 1][c] !== ' ') return;
+						balls.map[n].dx = 0;
+						balls.map[n].dy = 1;
 					}
 					else{
-						if(level[l - 1][c] !== ' ') return;
-						balls.map[n].dir = 'up';
+						if(level.map[l - 1][c] !== ' ') return;
+						balls.map[n].dx = 0;
+						balls.map[n].dy = -1;
 					}
 				}
 				else{
 					if(range[0].x < range[range.length - 1].x){
-						if(level[l][c + 1] !== ' ') return;
-						balls.map[n].dir = 'right';
+						if(level.map[l][c + 1] !== ' ') return;
+						balls.map[n].dx = 1
+						balls.map[n].dy = 0;
 					}
 					else{
-						if(level[l][c - 1] !== ' ') return;
-						balls.map[n].dir = 'left';
+						if(level.map[l][c - 1] !== ' ') return;
+						balls.map[n].dx = -1;
+						balls.map[n].dy = 0;
 					} 
 				}
 
@@ -146,75 +152,53 @@ function addListener(){
 	});
 }
 
-
-function checkMove(l, c){
-	return {
-		'down' : level[l + 1][c] === ' ',
-		'up' : level[l - 1][c] === ' ',
-		'right' : level[l][c + 1] === ' ',
-		'left' : level[l][c - 1] === ' '
-	}
-}
-
 function Balls(hash){
-	this.map = [];
-	for(var i in hash){
-		hash[i].state = 'static';
-		this.map.push(hash[i]);
-	}
+	this.map = hash;
 
-	this.update = (function(){
-		var count = 10;
+	this.update = function(){
+		for(var i = 0; i < this.map.length; i++){
+			var b = this.map[i];
 
-		return function(){
-			for(var i = 0; i < this.map.length; i++){
-				var b = this.map[i];
+			var lx = b.x - width*0.2;
+			var ly = b.y - height*0.2;
+			var size = width*0.6/level.width;
 
-				if(b.state === 'shift'){
-					if(count > 0){
-						if(b.dir === 'down') b.y++;
-						if(b.dir === 'up') b.y--;
-						if(b.dir === 'left') b.x--;
-						if(b.dir === 'right') b.x++;
+			var l = Math.ceil(ly / size);
+			var c = Math.ceil(lx / size);
 
-						count--;
-					}
-					else{
-						count = 10;
-						b.state = 'static';
-					}			
+			if(b.state === 'shift'){
+				if( ((ly%size)*Math.abs(b.dy)||(lx%size)*Math.abs(b.dx)) < 0.1*size || 
+				((ly%size)*Math.abs(b.dy)|| (lx%size)*Math.abs(b.dx)) > 0.9*size) {
+					b.x += b.dx;
+					b.y += b.dy;
 				}
-				if(b.state === 'unshift'){
-					if(count > 0){
-						if(b.dir === 'down') b.y--;
-						if(b.dir === 'up') b.y++;
-						if(b.dir === 'left') b.x++;
-						if(b.dir === 'right') b.x--;
-
-						count--;
-					}
-					else {
-						count = 10;
-						b.state = 'move';
-					}
-				}
-				if(b.state === 'move'){
-					var l = Math.floor((b.y - height*0.2)/((width*0.6)/level[0].length));
-					var c = Math.floor((b.x - width*0.2)/((width*0.6)/level[0].length));
-
-					if(checkMove(l, c)[b.dir]){
-						if(b.dir === 'down')b.y+=5;
-						if(b.dir === 'up') b.y-=5;
-						if(b.dir === 'left') b.x-=5;
-						if(b.dir === 'right') b.x+=5;
-					}
-					else{
-						b.state = 'static';
-					}
+				else{
+					b.state = 'static';
 				}
 			}
+			if(b.state === 'unshift'){
+				if(((ly%size)*Math.abs(b.dy)||(lx%size)*Math.abs(b.dx)) !== 0){
+					b.x -= b.dx;
+					b.y -= b.dy;
+				}
+				else {
+					b.state = 'static';
+				}
+			}
+			if(b.state === 'move'){
+				if(b.left < 9){
+					b.x += b.left*b.dx;
+					b.y += b.left*b.dy;
+					b.state = 'static';
+					level.update();
+					return;
+				}
+				b.x += b.dx*9;
+				b.y += b.dy*9;
+				b.left -= 9;
+			}
 		}
-	})();
+	}
 
 	this.draw = function(){
 		for(var i = 0; i < this.map.length; i++){
@@ -224,10 +208,7 @@ function Balls(hash){
 }
 
 function Background(hash){
-	this.map = [];
-	for(var i in hash){
-		this.map.push(hash[i]);
-	}
+	this.map = hash;
 
 	this.draw = function(){
 		ctx.fillRect(0, 0, width, height);
@@ -238,10 +219,7 @@ function Background(hash){
 }
 
 function Exit(hash){
-	this.map = [];
-	for(var i in hash){
-		this.map.push(hash[i]);
-	}
+	this.map = hash;
 
 	this.draw = function(){
 		for(var i = 0; i < this.map.length; i++){
@@ -250,8 +228,27 @@ function Exit(hash){
 	}
 }
 
+function countDistance(x, y, dx, dy){
+	var lx = x - 0.2*width;
+	var ly = y - 0.2*width;
+
+	var l = Math.floor(ly / (width * 0.6 / level.width));
+	var c = Math.floor(lx / (width * 0.6 / level.width));
+
+	while(true){
+		l += dy;
+		c += dx;
+		if(level.map[l][c] !== ' ') break;
+	}
+
+	var cx = (width * 0.6 / level.width) * c;
+	var cy = (width * 0.6 / level.width) * l;
+
+	return (Math.abs((cx - lx)*dx) || Math.abs((cy - ly)*dy)) - width * 0.6 / level.width;
+}
+
 function generateLevel(){
-	scale = (width*0.6/level[0].length)/75;
+	scale = (width*0.6/level.width)/75;
 
 	var initx = width - width*0.8;
 	var inity = height - height*0.8;
@@ -260,16 +257,16 @@ function generateLevel(){
 
 	var bgHash = [], ballsHash = [], exitHash = [];
 
-	for(var i = 0; i < level.length; i++){
-		for(var p = 0; p < level[i].length; p++){
-			var c = level[i][p];
+	for(var i = 0; i < level.height; i++){
+		for(var p = 0; p < level.width; p++){
+			var c = level.map[i][p];
 			if(c === 'X') bgHash.push({x : cx, y : inity});
 			if(c === 'B') ballsHash.push({x : cx, y : inity});
 			if(c === 'E') exitHash.push({x : cx, y : inity});
-			cx+= (width*0.6)/level[0].length;
+			cx+= (width*0.6)/level.width;
 		}
 		cx = initx;
-		inity += (width*0.6)/level[0].length;
+		inity += (width*0.6)/level.width;
 	}
 
 	balls = new Balls(ballsHash);
