@@ -215,6 +215,7 @@ function Balls(hash){
 			}
 			if(b.state === 'move'){
 				if(b.left < 9){
+					console.log(b.left);
 					b.x += b.left*b.dx;
 					b.y += b.left*b.dy;
 					b.state = 'static';
