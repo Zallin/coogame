@@ -20,27 +20,40 @@ function Level(m){
 
 	this.height = m.length;
 
-	this.update = function(x, y, dx, dy){
+	this.update = function(x, y, dx, dy, n){
 		var lx = x - 0.2*width;
 		var ly = y - 0.2*width;
 
-		var ls = Math.floor(ly / (width * 0.6 / level.width));
-		var cs = Math.floor(lx / (width * 0.6 / level.width));
+		var le = Math.floor(ly / (width * 0.6 / level.width));
+		var ce = Math.floor(lx / (width * 0.6 / level.width));
 
-		var l = ls;
-		var c = cs;
+		if(this.map[le][ce] == 'B'){
+			balls.map.splice(n, 1);
+			this.map[le] = this.map[le].replaceAt(ce, ' ');
+			console.log(this.map[le]);
+			return;
+		}
+
+		var ls = le;
+		var cs = ce;
 
 		dx *= -1;
 		dy *= -1;
 
 		while(true){
-			l += dy;
-			c += dx;
-			if(level.map[l][c] !== ' ') break;
+			ls += dy;
+			cs += dx;
+			if(level.map[ls][cs] !== ' ') break;
 		}
 
-		this.map[ls] = this.map[ls].replaceAt(cs, 'B');
-		this.map[l] = this.map[l].replaceAt(c, ' ');
+		if(this.map[le + dy*-1][ce + dx*-1] == 'E'){
+			balls.map.splice(n, 1);
+			this.map[ls] = this.map[ls].replaceAt(cs, ' ');
+			return;
+		}
+
+		this.map[ls] = this.map[ls].replaceAt(cs, ' ');
+		this.map[le] = this.map[le].replaceAt(ce, 'B');
 	}
 }
 
