@@ -21,11 +21,11 @@ function Level(m){
 	this.height = m.length;
 
 	this.update = function(x, y, dx, dy, n){
-		var lx = x - 0.2*width;
-		var ly = y - 0.2*width;
+		var lx = x - S.offsetX;
+		var ly = y - S.offsetY;
 
-		var le = Math.floor(ly / (width * 0.6 / level.width));
-		var ce = Math.floor(lx / (width * 0.6 / level.width));
+		var le = Math.floor(ly / S.pieceSize);
+		var ce = Math.floor(lx / S.pieceSize);
 
 		var ls = le;
 		var cs = ce;
@@ -57,8 +57,6 @@ function Level(m){
 		this.map[le] = this.map[le].replaceAt(ce, 'B');
 	}
 }
-
-var level = new Level(map);
 
 String.prototype.replaceAt = function(index, character){
 	return this.substr(0, index) + character + this.substr(index + character.length);
