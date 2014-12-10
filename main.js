@@ -7,7 +7,9 @@ var cns,
 	pieces,
 	balls,
 	bg,
-	exits;
+	exits,
+	level,
+	S;
 
 function main(){
 	width = window.innerWidth;
@@ -31,6 +33,8 @@ function main(){
 	sprite.src = 'img/sprite.png';
 
 	sprite.onload = function () {
+		level = new Level(map);
+		S = new Settings(width, height);
 		generateLevel();
 		pieces = initPieces(this, scale);
 		addListener();
@@ -90,7 +94,7 @@ function addListener(){
 
 	cns.addEventListener('mousemove', function(e){
 		if(pressed){
-			range.push({x : e.pageX, y : e.pageY});
+			range.push({x : e.offsetX, y : e.offsetY});
 			if(range.length === 12){
 				var fx = range[0].x;
 				var fy = range[0].y;
@@ -101,8 +105,8 @@ function addListener(){
 					var bx = balls.map[i].x;
 					var by = balls.map[i].y;
 
-					var p1 = Math.min(Math.max(fx, bx), bx + 75*scale);
-					var p2 = Math.min(Math.max(fy, by), by + 75*scale);
+					var p1 = Math.min(Math.max(fx, bx), bx + S.spriteSize*scale);
+					var p2 = Math.min(Math.max(fy, by), by + S.spriteSize*scale);
 
 					if(p1 == fx && p2 == fy) {
 						n = i;
@@ -112,6 +116,7 @@ function addListener(){
 				}
 
 				if(!inside){
+					console.log('not inside');
 					n = null;
 					return;
 				}
@@ -134,8 +139,8 @@ function addListener(){
 					return;
 				}
 
-				var l = Math.floor((balls.map[n].y - height*0.2)/((width*0.6)/level.width));
-				var c = Math.floor((balls.map[n].x - width*0.2)/((width*0.6)/level.width));
+				var l = Math.floor((balls.map[n].y - S.offsetY)/S.pieceSize);
+				var c = Math.floor((balls.map[n].x - S.offsetX)/S.pieceSize);
 
 				if(dx <= 10){
 					if(range[0].y < range[range.length - 1].y){
@@ -187,16 +192,15 @@ function Balls(hash){
 		for(var i = 0; i < this.map.length; i++){
 			var b = this.map[i];
 
-			var lx = b.x - width*0.2;
-			var ly = b.y - height*0.2;
-			var size = width*0.6/level.width;
+			var lx = b.x - S.offsetX;
+			var ly = b.y - S.offsetY;
 
-			var l = Math.ceil(ly / size);
-			var c = Math.ceil(lx / size);
+			var l = Math.ceil(ly / S.pieceSize);
+			var c = Math.ceil(lx / S.pieceSize);
 
 			if(b.state === 'shift'){
-				if( ((ly%size)*Math.abs(b.dy)||(lx%size)*Math.abs(b.dx)) < 0.1*size || 
-				((ly%size)*Math.abs(b.dy)|| (lx%size)*Math.abs(b.dx)) > 0.9*size) {
+				if( ((ly%S.pieceSize)*Math.abs(b.dy)||(lx%S.pieceSize)*Math.abs(b.dx)) < 0.1*S.pieceSize || 
+				((ly%S.pieceSize)*Math.abs(b.dy)|| (lx%S.pieceSize)*Math.abs(b.dx)) > 0.9*S.pieceSize) {
 					b.x += b.dx;
 					b.y += b.dy;
 				}
@@ -205,7 +209,7 @@ function Balls(hash){
 				}
 			}
 			if(b.state === 'unshift'){
-				if(((ly%size)*Math.abs(b.dy)||(lx%size)*Math.abs(b.dx)) !== 0){
+				if(((ly%S.pieceSize)*Math.abs(b.dy)||(lx%S.pieceSize)*Math.abs(b.dx)) !== 0){
 					b.x -= b.dx;
 					b.y -= b.dy;
 				}
@@ -215,7 +219,6 @@ function Balls(hash){
 			}
 			if(b.state === 'move'){
 				if(b.left < 9){
-					console.log(b.left);
 					b.x += b.left*b.dx;
 					b.y += b.left*b.dy;
 					b.state = 'static';
@@ -258,15 +261,15 @@ function Exit(hash){
 }
 
 function countDistance(x, y, dx, dy){
-	var lx = x - 0.2*width;
-	var ly = y - 0.2*width;
+	var lx = x - S.offsetX;
+	var ly = y - S.offsetY;
 
 	var l, c;
 
-	if(dx > 0 || dx == 0) c = Math.floor(lx / (width * 0.6 / level.width));
-	if(dx < 0) c = Math.ceil(lx / (width * 0.6 / level.width));
-	if(dy > 0 || dy == 0) l = Math.floor(ly / (width * 0.6 / level.width));
-	if(dy < 0) l = Math.ceil(ly / (width * 0.6 / level.width));
+	if(dx > 0 || dx == 0) c = Math.floor(lx / S.pieceSize);
+	if(dx < 0) c = Math.ceil(lx / S.pieceSize);
+	if(dy > 0 || dy == 0) l = Math.floor(ly / S.pieceSize);
+	if(dy < 0) l = Math.ceil(ly / S.pieceSize);
 
 	while(true){
 		l += dy;
@@ -274,17 +277,17 @@ function countDistance(x, y, dx, dy){
 		if(level.map[l][c] !== ' ') break;
 	}
 
-	var cx = (width * 0.6 / level.width) * c;
-	var cy = (width * 0.6 / level.width) * l;
+	var cx = S.pieceSize * c;
+	var cy = S.pieceSize * l;
 
-	return (Math.abs((cx - lx)*dx) || Math.abs((cy - ly)*dy)) - width * 0.6 / level.width;
+	return (Math.abs((cx - lx)*dx) || Math.abs((cy - ly)*dy)) - S.pieceSize;
 }
 
 function generateLevel(){
-	scale = (width*0.6/level.width)/75;
+	scale = S.pieceSize/S.spriteSize;
 
-	var initx = width - width*0.8;
-	var inity = height - height*0.8;
+	var initx = width - (S.fieldSize + S.offsetX);
+	var inity = height - (S.fieldSize + S.offsetY);
 
 	var cx = initx;
 
@@ -296,10 +299,10 @@ function generateLevel(){
 			if(c === 'X') bgHash.push({x : cx, y : inity});
 			if(c === 'B') ballsHash.push({x : cx, y : inity, id : ballsHash.length});
 			if(c === 'E') exitHash.push({x : cx, y : inity, id : exitHash.length});
-			cx+= (width*0.6)/level.width;
+			cx+= S.pieceSize;
 		}
 		cx = initx;
-		inity += (width*0.6)/level.width;
+		inity += S.pieceSize;
 	}
 
 	balls = new Balls(ballsHash);
