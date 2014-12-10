@@ -45,7 +45,7 @@ function Level(m){
 				cs = ce;
 			}
 			var ep = (ce + dx*-1) + (le + dy*-1)*this.width;
-			var eid = this.map.join().slice(0, ep + 1).match(/E/g).length - 1;
+			var eid = this.map.join('').slice(0, ep + 1).match(/E/g).length - 1;
 			if(exits.map[eid].id == balls.map[n].id){
 				balls.map.splice(n, 1);
 				this.map[ls] = this.map[ls].replaceAt(cs, ' ');
