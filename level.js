@@ -27,13 +27,6 @@ function Level(m){
 		var le = Math.floor(ly / (width * 0.6 / level.width));
 		var ce = Math.floor(lx / (width * 0.6 / level.width));
 
-		if(this.map[le][ce] == 'B'){
-			balls.map.splice(n, 1);
-			this.map[le] = this.map[le].replaceAt(ce, ' ');
-			console.log(this.map[le]);
-			return;
-		}
-
 		var ls = le;
 		var cs = ce;
 
@@ -47,9 +40,17 @@ function Level(m){
 		}
 
 		if(this.map[le + dy*-1][ce + dx*-1] == 'E'){
-			balls.map.splice(n, 1);
-			this.map[ls] = this.map[ls].replaceAt(cs, ' ');
-			return;
+			if(this.map[le][ce] == 'B'){
+				ls = le;
+				cs = ce;
+			}
+			var ep = (ce + dx*-1) + (le + dy*-1)*this.width;
+			var eid = this.map.join().slice(0, ep + 1).match(/E/g).length - 1;
+			if(exits.map[eid].id == balls.map[n].id){
+				balls.map.splice(n, 1);
+				this.map[ls] = this.map[ls].replaceAt(cs, ' ');
+				return;
+			}
 		}
 
 		this.map[ls] = this.map[ls].replaceAt(cs, ' ');
