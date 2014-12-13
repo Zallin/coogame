@@ -39,9 +39,12 @@ function main(){
 	sprite = new Image();
 	sprite.src = 'img/sprite.png';
 
+	var n = parseInt(localStorage.getItem("next"));
+	if(!n) localStorage.setItem("next", 0);
+
 	sprite.onload = function () {
-		level = new Level(map);
-		S = new Settings(width, height);
+		level = new Level(levels[n]);
+		S = new Settings(width, height, level.width);
 		initLevel();
 		pieces = initPieces(this, scale);
 		initMenu();
@@ -60,7 +63,6 @@ function run(){
 	}
 	window.requestAnimationFrame(loop, cns);
 }
-
 
 function update(){
 	if(currentState == states.Game) balls.update();
@@ -248,7 +250,7 @@ function Balls(hash){
 					b.x += b.left*b.dx;
 					b.y += b.left*b.dy;
 					b.state = 'static';
-					level.update(b.x, b.y, b.dx, b.dy, i);
+					level.update(b.x, b.y, b.dx, b.dy, i, S.pieceSize);
 					return;
 				}
 				b.x += b.dx*9;
@@ -321,7 +323,7 @@ function countDistance(x, y, dx, dy){
 }
 
 function initLevel(){
-	scale = S.pieceSize/S.spriteSize;;
+	scale = S.pieceSize/S.spriteSize;
 
 	var initx = width - (S.fieldSize + S.offsetX);
 	var inity = height - (S.fieldSize + S.offsetY);
@@ -343,6 +345,7 @@ function initLevel(){
 	}
 
 	balls = new Balls(ballsHash);
+	console.log(balls.map[0].x);
 	bg = new Background(bgHash);
 	exits = new Exit(exitHash);
 }
@@ -355,5 +358,4 @@ function initMenu(){
 	}
 	menu = new Menu(menuHash);
 }
-
 main();

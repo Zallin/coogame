@@ -1,6 +1,6 @@
-function Settings(w, h){
-	this.fieldSize = w*0.8;
-	this.pieceSize = this.fieldSize / level.width;
+function Settings(w, h, lw){
+	this.fieldSize = parseInt((w*0.8).toPrecision(4));
+	this.pieceSize = parseInt((this.fieldSize / lw).toPrecision(4));
 	this.offsetX = 0.1*w;
 	this.offsetY = (h - this.fieldSize)/2;
 

@@ -1,14 +1,29 @@
-var map = [
-	'XXEXXX',
-	'XB   X',
-	'X    E',
-	'X    X',
-	'XX B X',
-	' XXXXX'
+var levels = [
+
+	[	
+		'XXEXXX',
+		'XB   X',
+		'X    E',
+		'X    X',
+		'XX B X',
+		' XXXXX'
+	],
+
+	[
+		'    XXXXX',
+		'   XX   X',
+		'  XX BB X',
+		' XX     E',
+		'XX      X',
+		'X       X',
+		'X       X',
+		'X      BX',
+		'XXEXXEXXX'
+	]
 ];
 
 function Level(m){
-	this.map = map;
+	this.map = m;
 
 	var w = m[0].length;
 
@@ -20,12 +35,12 @@ function Level(m){
 
 	this.height = m.length;
 
-	this.update = function(x, y, dx, dy, n){
+	this.update = function(x, y, dx, dy, n, ps){
 		var lx = x - S.offsetX;
 		var ly = y - S.offsetY;
 
-		var le = Math.floor(ly / S.pieceSize);
-		var ce = Math.floor(lx / S.pieceSize);
+		var le = Math.floor(ly / ps);
+		var ce = Math.floor(lx / ps);
 
 		var ls = le;
 		var cs = ce;
@@ -36,7 +51,7 @@ function Level(m){
 		while(true){
 			ls += dy;
 			cs += dx;
-			if(level.map[ls][cs] !== ' ') break;
+			if(this.map[ls][cs] !== ' ') break;
 		}
 
 		if(this.map[le + dy*-1][ce + dx*-1] == 'E'){
@@ -49,6 +64,20 @@ function Level(m){
 			if(exits.map[eid].id == balls.map[n].id){
 				balls.map.splice(n, 1);
 				this.map[ls] = this.map[ls].replaceAt(cs, ' ');
+				if(!balls.map.length){
+					var n = parseInt(localStorage.getItem("next")) + 1;
+					if(levels[n]){
+						localStorage.setItem("next", n);
+						level = new Level(levels[n]);
+						S = new Settings(width, height);
+						initLevel();
+						pieces = initPieces(sprite, scale);
+					}
+					else{
+						//the game is finished
+						currentState = states.Menu;
+					}
+				}
 				return;
 			}
 		}
