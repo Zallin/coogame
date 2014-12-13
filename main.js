@@ -8,13 +8,20 @@ var cns,
 	balls,
 	bg,
 	exits,
+	menu,
 	level,
+	states = {
+		Menu : 0,
+		Levels : 1,
+		Game : 2
+	},
+	currentState,
 	S;
 
 function main(){
 	width = window.innerWidth;
 	height = window.innerHeight;
-	if(width > 600){
+	if(width > 414 && height > 736){
 		width = 600;
 		height = 600;
 	}
@@ -35,9 +42,11 @@ function main(){
 	sprite.onload = function () {
 		level = new Level(map);
 		S = new Settings(width, height);
-		generateLevel();
+		initLevel();
 		pieces = initPieces(this, scale);
+		initMenu();
 		addListener();
+		currentState = states.Menu;
 		run();
 	}
 }
@@ -54,19 +63,37 @@ function run(){
 
 
 function update(){
-	balls.update();
+	if(currentState == states.Game) balls.update();
 }
 
 function render(){
-	bg.draw();
-	exits.draw();
-	balls.draw();
+	if(currentState == states.Game){
+		bg.draw();
+		exits.draw();
+		balls.draw();
+	}
+	else if(currentState == states.Menu){
+		menu.draw();
+	}
 }
 
 function addListener(){
 	var pressed = false, range = [], n = null;
 
-	cns.addEventListener('mousedown', function(){
+	cns.addEventListener('mousedown', function(e){
+		if(currentState == states.Menu){
+			for(var i = 1; i < menu.map.length; i++){
+				var x = menu.map[i].x;
+				var y = menu.map[i].y;
+
+				var p1 = Math.min(Math.max(e.offsetX, x), x + pieces.menu[i].width);
+				var p2 = Math.min(Math.max(e.offsetY, y), y + pieces.menu[i].height);
+
+				if(p1 == e.offsetX && p2 == e.offsetY){
+					if(i == 1) currentState = states.Game;
+				}
+			}
+		}
 		pressed = true;
 	});
 
@@ -116,7 +143,6 @@ function addListener(){
 				}
 
 				if(!inside){
-					console.log('not inside');
 					n = null;
 					return;
 				}
@@ -260,6 +286,17 @@ function Exit(hash){
 	}
 }
 
+function Menu(hash){
+	this.map = hash;
+
+	this.draw = function(){
+		ctx.fillRect(0, 0, width, height);
+		for(var i = 0; i < this.map.length; i++){
+			pieces.menu[i].draw(ctx, this.map[i].x, this.map[i].y);
+		}
+	}
+}
+
 function countDistance(x, y, dx, dy){
 	var lx = x - S.offsetX;
 	var ly = y - S.offsetY;
@@ -283,8 +320,8 @@ function countDistance(x, y, dx, dy){
 	return (Math.abs((cx - lx)*dx) || Math.abs((cy - ly)*dy)) - S.pieceSize;
 }
 
-function generateLevel(){
-	scale = S.pieceSize/S.spriteSize;
+function initLevel(){
+	scale = S.pieceSize/S.spriteSize;;
 
 	var initx = width - (S.fieldSize + S.offsetX);
 	var inity = height - (S.fieldSize + S.offsetY);
@@ -309,4 +346,14 @@ function generateLevel(){
 	bg = new Background(bgHash);
 	exits = new Exit(exitHash);
 }
+
+function initMenu(){
+	var menuHash = [];
+	for(var i = 0; i < pieces.menu.length; i++){
+		var p = pieces.menu[i];
+		menuHash.push({x : width/2 - p.width/2, y : 0.2*height + i*height*0.2}); 
+	}
+	menu = new Menu(menuHash);
+}
+
 main();
