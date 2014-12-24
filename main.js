@@ -21,10 +21,6 @@ var cns,
 function main(){
 	width = window.innerWidth;
 	height = window.innerHeight;
-	if(width > 414 && height > 736){
-		width = 600;
-		height = 600;
-	}
 
 	cns = document.createElement('canvas');
 
@@ -41,17 +37,20 @@ function main(){
 
 	var n = parseInt(localStorage.getItem("next"));
 	if(!n) localStorage.setItem("next", 0);
-
 	sprite.onload = function () {
-		level = new Level(levels[n]);
-		S = new Settings(width, height, level.width);
-		initLevel();
-		pieces = initPieces(this, scale);
-		initMenu();
+		start();
 		addListener();
 		currentState = states.Menu;
 		run();
 	}
+}
+
+function start(){
+	var n = parseInt(localStorage.getItem("next"));
+	level = new Level(levels[n]);
+	S = new Settings(width, height, level.width);
+	initLevel();
+	pieces = initPieces(sprite, scale);
 }
 
 function run(){
@@ -75,31 +74,45 @@ function render(){
 		balls.draw();
 	}
 	else if(currentState == states.Menu){
-		menu.draw();
+		ctx.fillRect(0, 0, width, height);
+		for(var i = 0; i < pieces.menu.length; i++){
+			pieces.menu[i].draw(ctx, width/2 - pieces.menu[i].width/2, 0.2*height + i*height*0.2);
+		}
 	}
 }
 
 function addListener(){
 	var pressed = false, range = [], n = null;
 
-	cns.addEventListener('mousedown', function(e){
+	cns.addEventListener('touchstart', function(e){
 		if(currentState == states.Menu){
-			for(var i = 1; i < menu.map.length; i++){
-				var x = menu.map[i].x;
-				var y = menu.map[i].y;
+			for(var i = 1; i < pieces.menu.length; i++){
+				var x = width/2 - pieces.menu[i].width/2;
+				var y = 0.2*height + i*height*0.2;
 
-				var p1 = Math.min(Math.max(e.offsetX, x), x + pieces.menu[i].width);
-				var p2 = Math.min(Math.max(e.offsetY, y), y + pieces.menu[i].height);
+				var p1 = Math.min(Math.max(e.changedTouches[0].pageX, x), x + pieces.menu[i].width);
+				var p2 = Math.min(Math.max(e.changedTouches[0].pageY, y), y + pieces.menu[i].height);
 
-				if(p1 == e.offsetX && p2 == e.offsetY){
+				if(p1 == e.changedTouches[0].pageX && p2 == e.changedTouches[0].pageY){
 					if(i == 1) currentState = states.Game;
 				}
+			}
+		}
+		else if(currentState == states.Game){
+			var x = width/2 - pieces.restart.width/2;
+			var y = height - S.offsetY/2;
+
+			var p1 = Math.min(Math.max(e.changedTouches[0].pageX, x), x + pieces.restart.width);
+			var p2 = Math.min(Math.max(e.changedTouches[0].pageY, y), y + pieces.restart.height);
+
+			if(p1 == e.changedTouches[0].pageX && p2 == e.changedTouches[0].pageY){
+				start();
 			}
 		}
 		pressed = true;
 	});
 
-	cns.addEventListener('mouseup', function(){
+	cns.addEventListener('touchend', function(){
 		pressed = false;
 
 		if(n !== null){
@@ -121,9 +134,9 @@ function addListener(){
 		range = [];
 	});
 
-	cns.addEventListener('mousemove', function(e){
+	cns.addEventListener('touchmove', function(e){
 		if(pressed){
-			range.push({x : e.offsetX, y : e.offsetY});
+			range.push({x : e.changedTouches[0].pageX, y : e.changedTouches[0].pageY});
 			if(range.length === 12){
 				var fx = range[0].x;
 				var fy = range[0].y;
@@ -134,8 +147,8 @@ function addListener(){
 					var bx = balls.map[i].x;
 					var by = balls.map[i].y;
 
-					var p1 = Math.min(Math.max(fx, bx), bx + S.spriteSize*scale);
-					var p2 = Math.min(Math.max(fy, by), by + S.spriteSize*scale);
+					var p1 = Math.min(Math.max(fx, bx - S.pieceSize/2), (bx + S.pieceSize*1.5));
+					var p2 = Math.min(Math.max(fy, by - S.pieceSize/2), (by + S.pieceSize*1.5));
 
 					if(p1 == fx && p2 == fy) {
 						n = i;
@@ -275,6 +288,7 @@ function Background(hash){
 		for(var i = 0; i < this.map.length; i++){
 			pieces.border.draw(ctx, this.map[i].x, this.map[i].y);
 		}
+		pieces.restart.draw(ctx, width/2 - pieces.restart.width/2, height - S.offsetY/2);
 	}
 }
 
@@ -284,17 +298,6 @@ function Exit(hash){
 	this.draw = function(){
 		for(var i = 0; i < this.map.length; i++){
 			pieces.box[this.map[i].id].draw(ctx, this.map[i].x, this.map[i].y);
-		}
-	}
-}
-
-function Menu(hash){
-	this.map = hash;
-
-	this.draw = function(){
-		ctx.fillRect(0, 0, width, height);
-		for(var i = 0; i < this.map.length; i++){
-			pieces.menu[i].draw(ctx, this.map[i].x, this.map[i].y);
 		}
 	}
 }
@@ -345,17 +348,8 @@ function initLevel(){
 	}
 
 	balls = new Balls(ballsHash);
-	console.log(balls.map[0].x);
 	bg = new Background(bgHash);
 	exits = new Exit(exitHash);
 }
 
-function initMenu(){
-	var menuHash = [];
-	for(var i = 0; i < pieces.menu.length; i++){
-		var p = pieces.menu[i];
-		menuHash.push({x : width/2 - p.width/2, y : 0.2*height + i*height*0.2}); 
-	}
-	menu = new Menu(menuHash);
-}
 main();
