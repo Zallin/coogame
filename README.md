@@ -1,4 +1,8 @@
-coogame
+Coogame
 =======
 
-simple html5 canvas game
+Simple html5 canvas game
+
+=======
+
+Available for Google Play
