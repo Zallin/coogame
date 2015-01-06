@@ -12,22 +12,22 @@ Piece.prototype.draw = function(ctx, x, y) {
 };
 
 
-function initPieces(img, scale){
+function initSprite(img, scale){
 
 	Piece.prototype.img = img;
 	Piece.prototype.scale = scale;
 
 	return {
-		border : new Piece(1, 0, 75, 75),
+		wall : new Piece(1, 0, 75, 75),
 
-		box: [
+		exits: [
 			new Piece(76, 0, 75, 75),
 			new Piece(151, 0, 75, 75),
 			new Piece(226, 0, 75, 75),
 			new Piece(300, 0, 75, 75)
 		],
 
-		ball : [
+		balls : [
 			new Piece(450, 0, 75, 75),
 			new Piece(525, 0, 75, 75),
 			new Piece(600, 0, 75, 75),
@@ -37,7 +37,10 @@ function initPieces(img, scale){
 		menu : [
 			new Piece(0, 75, 150, 42, 1),
 			new Piece(250, 75, 100, 54, 1),
-			new Piece(148, 75, 100, 54, 1)
-		]
+			new Piece(148, 75, 100, 54, 1),
+		],
+		header : new Piece(0, 75, 150, 42, 1),
+		button : new Piece(250, 75, 100, 54, 1),
+		restart : new Piece(350, 75, 100, 54, 1)
 	}
 }
